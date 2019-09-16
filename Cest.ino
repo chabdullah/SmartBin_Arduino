@@ -7,14 +7,19 @@
 #define ECHO_PIN 4 //D2
 
 
+
 /* Put your SSID & Password */
 const char* ssid = "Questa";  // Enter SSID here
 const char* password = "lasolita";  //Enter Password here
 
+//LED
+int pinGreen= 10;
+
+
 
 //Motore
-Servo myservo_1, myservo_2;
-int pos_servo1, pos_servo2;
+Servo myservo_1, myservo_2, myservo_3, myservo_4;
+int pos_servo1, pos_servo2, pos_servo3, pos_servo4;
 
 
 //Sensori materiali
@@ -43,6 +48,7 @@ int material_type;
 
 void setup() {
 
+  
   //Inizializzazione dei sensori
   Serial.begin(9600);
   delay(1000);
@@ -50,6 +56,12 @@ void setup() {
   pinMode(capacitivePin,INPUT);
   myservo_1.attach(5);
   myservo_2.attach(16);
+  myservo_3.attach(13);
+  myservo_4.attach(15);
+  myservo_1.write(180);
+  myservo_2.write(180);
+  myservo_3.write(180);
+  myservo_4.write(180);
   
   //Collegamento al router
   Serial.println();
@@ -72,7 +84,7 @@ void loop() {
     if(newDistance <= distanceSensibility && oldDistance > distanceSensibility){
       Serial.println("Piatto: PIENO");
       Serial.println("Calcolo...");
-      delay(triggerDelay);
+      delay(4000);
       int valInductive = digitalRead(inductivePin);
       int valCapacitive = digitalRead(capacitivePin);
          
@@ -89,11 +101,13 @@ void loop() {
       }else{
         material_type = 4;
       }
+      Serial.println();
       Serial.println("Fatto.");
       delay(1000);
       ////////////////////////////////////////////////
       Serial.println("Misura peso...");
-      delay(2000);
+      //setColor(0, 255, 0);
+      delay(4000);
       int sum = 0;
       for(int i=0; i<25; i++)
         sum += analogRead(fsrAnalogPin);
@@ -102,24 +116,32 @@ void loop() {
       
       if( material_type == 1 ){
         Serial.print( "Metallo\t" );
-        for (pos_servo1 = 0; pos_servo1 <= 180; pos_servo1 += 1) {
+        for (pos_servo1 = 180; pos_servo1 >= 0; pos_servo1 -= 1) {
           myservo_1.write(pos_servo1);              
           delay(15);
         }
       }else if(material_type == 2){
         if(weight > 230){
             Serial.print("Vetro");
-            material_type = 3;  
+            material_type = 3;
+            for (pos_servo3 = 180; pos_servo3 >= 0; pos_servo3 -= 1) {
+              myservo_3.write(pos_servo3);              
+              delay(15);
+            }  
         }else{
             Serial.print("Plastica");
             material_type = 2;
-            for (pos_servo2 = 0; pos_servo2 <= 180; pos_servo2 += 1) {
+            for (pos_servo2 = 180; pos_servo2 >= 0; pos_servo2 -= 1) {
               myservo_2.write(pos_servo2);              
               delay(15);
             }
         }
       }else{
         Serial.print("Indifferenziata\t");
+        for (pos_servo4 = 180; pos_servo4 >= 0; pos_servo4 -= 1) {
+          myservo_4.write(pos_servo4);              
+          delay(15);
+        }
       }
       Serial.println();
       Serial.print("Peso: ");
@@ -140,22 +162,34 @@ void loop() {
       }
       
     }else if(oldDistance <= distanceSensibility && newDistance > distanceSensibility){
-      Serial.println("Caduto");
+      Serial.println("Buttare l'oggetto");
+      delay(11000);
       oldDistance = newDistance;
-      Serial.println("Piatto: VUOTO");
       Serial.println("Attendere...");
       if(material_type == 1){
-        for (pos_servo1 = 180; pos_servo1 >= 0 ; pos_servo1 -= 1) {
+        for (pos_servo1 = 0; pos_servo1 <= 180 ; pos_servo1 += 1) {
           myservo_1.write(pos_servo1);              
           delay(15);
         }  
       }else if(material_type == 2){
-        for (pos_servo2 = 180; pos_servo2 >= 0 ; pos_servo2 -= 1) {
+        for (pos_servo2 = 0; pos_servo2 <= 180 ; pos_servo2 += 1) {
           myservo_2.write(pos_servo2);              
           delay(15);
         }  
       }
-      delay(triggerDelay);
+      else if(material_type == 3){
+        for (pos_servo3 = 0; pos_servo3 <= 180 ; pos_servo3 += 1) {
+          myservo_3.write(pos_servo3);              
+          delay(15);
+        }  
+      }
+      else if(material_type == 4){
+        for (pos_servo4 = 0; pos_servo4 <= 180 ; pos_servo4 += 1) {
+          myservo_4.write(pos_servo4);              
+          delay(15);
+        }  
+      }
+      delay(4000);
       Serial.println("########Pronto########");
     }
 }
